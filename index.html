@@ -1345,10 +1345,12 @@ function ntfySend(m){
   state.nt=state.nt||{}; state.nt.q=state.nt.q||[]; m.topic=ntfyTopic();
   state.nt.q.push(m); if(state.nt.q.length>20) state.nt.q.shift(); save(); ntfyFlush()
 }
+function ntfyAll(){ var n=0; CH.forEach(function(c){ c.bites.forEach(function(b){ if(b.k!=='end') n++ }) }); return n }
+function ntfyDone(){ var n=0; CH.forEach(function(c){ c.bites.forEach(function(b){ if(b.k!=='end'&&stOf(c.n,b.id)) n++ }) }); return n }
 function ntfyLesson(stars,gain){
   var L=(state.log||{})[today()]||{}, q=L.q||0, p=q?Math.round(100*(L.ok||0)/q):0, nm=myName()||'Je kind', si=scoreInfo();
-  ntfySend({title:'🇫🇷 '+nm+': les klaar '+['','⭐','⭐⭐','⭐⭐⭐'][stars],
-    message:'Vandaag: '+q+' oefeningen · '+p+'% meteen goed · '+(L.les||0)+' les'+((L.les||0)===1?'':'sen')+' · '+fmtMin(L.t||0)+'\nDeze les: '+LS.ok1+'/'+LS.tot+' meteen goed'+(si.done?'\nBereikt: '+si.reach+' ('+si.pct+'%) · '+si.mastered+' woordjes onder de knie':''),
+  ntfySend({title:'🇫🇷 '+nm+': les-bolleke klaar '+['','⭐','⭐⭐','⭐⭐⭐'][stars],
+    message:'Vandaag: '+q+' oefeningen · '+p+'% meteen goed · '+(L.les||0)+' les-bolleke'+((L.les||0)===1?'':'s')+' · '+fmtMin(L.t||0)+'\nDit les-bolleke: '+LS.ok1+'/'+LS.tot+' meteen goed\nIn totaal: '+ntfyDone()+' van '+ntfyAll()+' les-bollekes af'+(si.done?'\nBereikt: '+si.reach+' ('+si.pct+'%) · '+si.mastered+' woordjes onder de knie':''),
     tags:['flag-fr'],priority:3})
 }
 setTimeout(function(){ try{ ntfyFlush() }catch(e){} },3000);
@@ -1378,7 +1380,7 @@ function openReport(){
       '<div class="rp-t"><b>'+act+'</b><span>dagen geoefend</span></div>'+
       '<div class="rp-t"><b>'+tot.q+'</b><span>vragen gemaakt</span></div>'+
       '<div class="rp-t"><b>'+pct+'%</b><span>meteen goed</span></div>'+
-      '<div class="rp-t"><b>'+doneN+'/'+allN+'</b><span>lessen klaar</span></div>'+
+      '<div class="rp-t"><b>'+doneN+'/'+allN+'</b><span>les-bollekes klaar</span></div>'+
       '<div class="rp-t"><b>'+scoreInfo().mastered+'</b><span>woorden onder de knie</span></div></div>';
   /* laatste 14 dagen: staafgrafiek */
   var last=days.slice(-14), mx=Math.max(600,Math.max.apply(null,last.map(function(x){return x.v?x.v.t||0:0})));
@@ -1447,7 +1449,7 @@ function updateHead(){
   var b=B[cur], c=chOf(b.n), done=0, tot=c.bites.length-1, ix=c.bites.indexOf(b);
   c.bites.forEach(function(x){ if(x.k!=='end'&&stOf(c.n,x.id)) done++ });
   $('#pl-bar i').style.width=(100*done/tot)+'%';
-  $('#pl-head .ttl b').textContent=b.t; $('#pl-head .ttl span').textContent='Hoofdstuk '+b.n+' · les '+(ix+1)+' van '+c.bites.length+' · '+done+' klaar';
+  $('#pl-head .ttl b').textContent=b.t; $('#pl-head .ttl span').textContent='Hoofdstuk '+b.n+' · les-bolleke '+(ix+1)+' van '+c.bites.length+' · '+done+' klaar';
   var x=$('#pl-xp'); if(x) x.textContent='🏆 '+(state.streak.n&&state.streak.last===today()?'🔥'+state.streak.n+' ':'')+'⭐ '+state.xp;
 }
 function setFooter(o){
@@ -1496,7 +1498,7 @@ function renderPath(){
     if(PATHOPEN[cd.n]===undefined) PATHOPEN[cd.n]=(me&&!me.complete)?(cd.n===curNn):(gn?cd.n===gn.n:false);
     var open=PATHOPEN[cd.n], cls=cd.complete?'done':(cd.n===curNn?'cur':'fut');
     html+='<section class="pc '+cls+(open?' open':'')+'" data-n="'+cd.n+'"'+(fun?' style="--cc:'+CHF[(cd.n-1)%CHF.length]+'"':'')+'><button class="pc-h" aria-expanded="'+open+'"><span class="pc-num">'+cd.n+'</span>'+
-      '<span class="pc-t"><b>'+esc(cd.title)+'</b><small>'+cd.done+' van '+cd.tot+' bites</small></span>'+
+      '<span class="pc-t"><b>'+esc(cd.title)+'</b><small>'+cd.done+' van '+cd.tot+' les-bollekes</small></span>'+
       '<span class="pc-r">'+(cd.complete?'<span class="pc-badge">✓</span>':'')+'<span class="pc-chev">›</span></span></button>'+
       '<div class="pc-bar"><i style="width:'+(cd.tot?100*cd.done/cd.tot:0)+'%"></i></div><div class="pc-body"'+(open?'':' hidden')+'>';
     var items=[], y=TOPH, idx=0, icos='', lastFig=-9, icPool=icons('pos').concat(icons('neg')), icw=3*NS, ich=icw*1.147;
@@ -1528,7 +1530,7 @@ function renderPath(){
   });
   var sc0=$('#pp-scroll').scrollTop;
   $('#pp-list').innerHTML=html;
-  $('#pp-sub').textContent='Hoofdstuk '+cds[0].n+'–'+cds[cds.length-1].n+' · '+doneAll+' van '+totAll+' bites';
+  $('#pp-sub').textContent='Hoofdstuk '+cds[0].n+'–'+cds[cds.length-1].n+' · '+doneAll+' van '+totAll+' les-bollekes';
   $('#pp-bar i').style.width=(totAll?100*doneAll/totAll:0)+'%';
   var cta=$('#pp-cta .in');
   if(gn) cta.innerHTML='<button class="plp go" id="pp-go">▶ Ga verder<small>Hoofdstuk '+gn.n+' · '+esc(gn.t)+'</small></button>';
@@ -1552,7 +1554,7 @@ function toast(t,lab,fn,ms){ var el=$('#pp-toast'); el.innerHTML=''; el.appendCh
 function askPos(n,id){ return;
   var M=pathModel(), cd=M.cds.filter(function(c){return c.n===n})[0], b=cd&&cd.bl.filter(function(x){return x.id===id})[0];
   if(!b||b.k==='end') return;
-  var m=modal('<b>Je leerpad hier zetten?</b><p style="margin:10px 0 4px"><b>'+esc(b.t)+'</b><br><span style="color:var(--muted)">Hoofdstuk '+cd.n+'</span></p><p style="margin:8px 0 14px">Alle bites ervoor — ook in vorige hoofdstukken — worden als afgewerkt gemarkeerd. Je kunt dat daarna nog ongedaan maken.</p><div style="display:flex;gap:8px"><button class="plp go" id="ps-yes" style="flex:1">Ja, zet hier</button><button class="pls" id="ps-no">Annuleren</button></div>');
+  var m=modal('<b>Je leerpad hier zetten?</b><p style="margin:10px 0 4px"><b>'+esc(b.t)+'</b><br><span style="color:var(--muted)">Hoofdstuk '+cd.n+'</span></p><p style="margin:8px 0 14px">Alle les-bollekes ervoor — ook in vorige hoofdstukken — worden als afgewerkt gemarkeerd. Je kunt dat daarna nog ongedaan maken.</p><div style="display:flex;gap:8px"><button class="plp go" id="ps-yes" style="flex:1">Ja, zet hier</button><button class="pls" id="ps-no">Annuleren</button></div>');
   $('#ps-no',m).addEventListener('click',function(){m.hidden=true});
   $('#ps-yes',m).addEventListener('click',function(){m.hidden=true;applyPos(n,id)});
 }
@@ -1563,7 +1565,7 @@ function applyPos(n,id){
   try{navigator.vibrate&&navigator.vibrate(25)}catch(e){}
   lsSet('frans-pos',n+':'+id);
   $('#pp-sheet').hidden=true; updateHead(); renderPath(); sfx('ok');
-  toast('📍 Je leerpad staat nu hier'+(added.length?' · '+added.length+' bites afgewerkt':''),added.length?'Ongedaan maken':null,function(){
+  toast('📍 Je leerpad staat nu hier'+(added.length?' · '+added.length+' les-bollekes afgewerkt':''),added.length?'Ongedaan maken':null,function(){
     added.forEach(function(k){ if(state.bites[k]&&state.bites[k].s==='overgeslagen')delete state.bites[k] }); save();
     try{ if(prevPos)lsSet('frans-pos',prevPos); else localStorage.removeItem('frans-pos') }catch(e){}
     updateHead(); renderPath();
@@ -1572,7 +1574,7 @@ function applyPos(n,id){
 function nodeSheet(n,id,locked,M){
   var cd=M.cds.filter(function(c){return c.n===n})[0], b=cd.bl.filter(function(x){return x.id===id})[0], d=stOf(n,id), sh=$('#pp-sheet');
   var sub=KINDLAB[b.k]+(d&&d.s&&d.s!=='overgeslagen'&&/\//.test(d.s)?' · score '+d.s:'')+(d?(d.s==='overgeslagen'?' · overgeslagen ✓':' · afgerond ✓'):'');
-  var btn=locked?'<button class="plp" disabled>🔒 Nog niet beschikbaar</button><p class="sub">Het Duolingo-pad staat aan: rond eerst de bite ervoor af, of zet je leerpad hier.</p>':
+  var btn=locked?'<button class="plp" disabled>🔒 Nog niet beschikbaar</button><p class="sub">Het Duolingo-pad staat aan: rond eerst het les-bolleke ervoor af, of zet je leerpad hier.</p>':
     '<button class="plp'+(d?'':' go')+'" id="sh-go">'+(d?'Opnieuw bekijken':'Start')+'</button>';
   sh.innerHTML='<div class="in"><div class="sh-h"><span class="sh-ic">'+(locked?'🔒':b.k==='end'?'🏆':icOf(b))+'</span><div><b>'+esc(b.k==='end'?'Hoofdstuk klaar':b.t)+'</b><small>Hoofdstuk '+cd.n+' · '+esc(sub)+'</small></div></div>'+btn+
     (false?'<button class="pls" id="sh-pos">📍 Zet mijn leerpad hier</button><p class="sub">Tip: houd een bol ingedrukt (Mac: rechtsklik) om je leerpad daar te zetten.</p>':'')+'</div>';
